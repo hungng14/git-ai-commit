@@ -60,7 +60,7 @@ async function generateCommitMessage(files) {
           - types: feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert
           - scopes: auth|db|ui|api|deps|core|test`
 
-  const branchPrompt = `Using branch "${currentBranch}" as context, generate a commit message following these types: ${followTypes}.\n\n`;
+  const branchPrompt = `Using branch "${currentBranch}" as context, generate a commit message following these types: ${followTypes}. Eg: [lower case type]: [lower commit message].\n\n`;
 
   const prompt = `${branchPrompt} Generate a concise and meaningful commit message no more 40 words for the following changes:\n\n${diffContents}`;
 
