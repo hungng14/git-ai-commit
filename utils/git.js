@@ -5,7 +5,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const fs = require('fs');
 const { GEMINI_API_KEY } = require('../config/index.js');
 
-const genAI = new GoogleGenerativeAI('AIzaSyC6lR0x5BhzEL6b0AGjqY6n9v5w90cVDNc');
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
 // const prompt = 'Explain how AI works';
@@ -56,7 +56,11 @@ async function generateCommitMessage(files) {
   const diffContents = await getStagedDiff();
   console.log('---> diffContents', diffContents);
 
-  const branchPrompt = `Current branch: ${currentBranch}.\n\n`;
+  const followTypes = `
+          - types: feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert
+          - scopes: auth|db|ui|api|deps|core|test`
+
+  const branchPrompt = `Using branch "${currentBranch}" as context, generate a commit message following these types: ${followTypes}. Eg: [lower case type]: [Commit message].\n\n`;
 
   const prompt = `${branchPrompt} Generate a concise and meaningful commit message no more 40 words for the following changes:\n\n${diffContents}`;
 
