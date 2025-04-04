@@ -9,6 +9,9 @@
     "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bin": {
+    "git-ai": "./app.js"
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
