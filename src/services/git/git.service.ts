@@ -117,7 +117,7 @@ export async function commitChanges(): Promise<void> {
   console.log('Committed and pushed with AI-generated message:', commitMessage);
 
   await octokitService.createPullRequest('hungng14', 'git-ai-commit', {
-    title: 'test',
+    title: commitMessage,
     body: `## ✨ Description
 
         This PR adds the feature to create Pull Requests using the CLI tool.
