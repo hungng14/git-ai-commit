@@ -7,6 +7,7 @@ import {
 import * as fs from 'fs';
 import { GEMINI_API_KEY } from '../../config';
 import { octokitService } from '../octokit/octokit.service';
+import { parseCustomJSONString } from '../../helper/str';
 
 // Initialize Google AI
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY || '');
@@ -127,34 +128,67 @@ export async function generateCommitMessage(
  */
 export async function commitChanges(): Promise<void> {
   const files: string[] = await getStagedFiles();
-  const commitMessage: string | null = await generateCommitMessage(files);
+  const commitMessage: { title: string; body: string } | null =
+    await generateContentGithubChange(files);
+  if(!commitMessage) {
+    throw new Error('Can not generate commit message');
+  }
+  console.log('commitMessage', commitMessage);
 
-  if (!commitMessage) return;
+  await git.commit(commitMessage.title);
+  await git.push();
 
-  await git.commit(commitMessage);
-  // await git.push();
+  await octokitService.createPullRequest('hungng14', 'git-ai-commit', {
+    title: commitMessage.title,
+    body: commitMessage.body,
+    head: await getCurrentBranch(),
+    base: 'main',
+  });
+}
+
+const generateContentGithubChange = async (files: string[]) => {
+  let commitMessage: string | null = await generateCommitMessage(files);
+
+  // Retry once if commitMessage is null
+  if (!commitMessage) {
+    console.log('First attempt failed to generate commit message. Retrying...');
+    commitMessage = await generateCommitMessage(files);
+
+    if (!commitMessage) {
+      console.error('Failed to generate commit message after retry.');
+      return; // Stop if still no message
+    }
+  }
+
   console.log('Committed and pushed with AI-generated message:', commitMessage);
 
-  // await octokitService.createPullRequest('hungng14', 'git-ai-commit', {
-  //   title: commitMessage,
-  //   body: `## ✨ Summary by Git AI
+  let changes = parseCustomJSONString(commitMessage);
 
-  //       ### 🔥 Changes
+  // Retry once if changes is null
+  if (!changes) {
+    console.log('First attempt failed to parse changes. Retrying...');
+    commitMessage = await generateCommitMessage(files);
 
-  //       - Implemented \`createPullRequest\` function
-  //       - Added GitHub API integration via Axios
+    if (!commitMessage) {
+      console.error(
+        'Failed to generate commit message after retry (parse retry).'
+      );
+      return;
+    }
 
-  //       ## ✅ Checklist
+    console.log('Retry commit message:', commitMessage);
 
-  //       - [x] Code compiles correctly
-  //       - [x] Tests added and passing
-  //       - [x] Documentation updated
+    changes = parseCustomJSONString(commitMessage);
 
-  //       ## 📎 Related Issue`,
-  //   head: 'feat/add-create-pr',
-  //   base: 'main',
-  // });
-}
+    if (!changes) {
+      console.error('Failed to parse changes after retry.');
+      return;
+    }
+  }
+  console.log('changes', changes);
+
+  return changes;
+};
 
 // Export the functions
 export default {
