@@ -11,7 +11,7 @@ import { octokitService } from '../octokit/octokit.service';
 // Initialize Google AI
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY || '');
 const model: GenerativeModel = genAI.getGenerativeModel({
-  model: 'gemini-1.5-flash',
+  model: 'gemini-2.0-flash',
 });
 
 // Initialize Git
@@ -93,7 +93,7 @@ export async function generateCommitMessage(
 
       Convert git diff contents into a structured JSON format following **EXACTLY** this schema:
       {
-        "title": "[Using branch "${currentBranch}" as context, generate a commit message following these types: ${followTypes}. Eg: [lower case type]: [Commit message]]",
+        "title": "[Using the branch name "${currentBranch}" as context, generate a concise and relevant commit title that follows one of the provided types: ${followTypes}. Format the title as: [lowercase type]: [commit message]. Ensure the title clearly summarizes the overall change based on the diff]",
         "body": "[
           Generate a body following this format:
           ## ✨ Summary by Git AI
