@@ -88,7 +88,18 @@ export async function generateCommitMessage(
 
   const branchPrompt: string = `Using branch "${currentBranch}" as context, generate a commit message following these types: ${followTypes}. Eg: [lower case type]: [Commit message].\n\n`;
 
-  const prompt: string = `${branchPrompt} Generate a concise and meaningful commit message no more 40 words for the following changes:\n\n${diffContents}`;
+  // const prompt: string = `${branchPrompt} Generate a concise and meaningful commit message no more 40 words for the following changes:\n\n${diffContents}`;
+  const prompt: string = `${branchPrompt} Based on the following diff contents: ${diffContents}, 
+  create an object with the structure: { title: string, body: string }.
+  Generate a concise and relevant title summarizing the overall change. 
+  Generate a body following this format:
+
+    ## ✨ Summary by Git AI
+
+    ### 🔥 Changes
+    - [List the key points or main changes found in the diff]
+
+  The output should strictly be a JSON object like: { "title": "", "body": "" }.`;
 
   try {
     const result: GenerateContentResult = await model.generateContent(prompt);
@@ -113,30 +124,28 @@ export async function commitChanges(): Promise<void> {
   if (!commitMessage) return;
 
   await git.commit(commitMessage);
-  await git.push();
+  // await git.push();
   console.log('Committed and pushed with AI-generated message:', commitMessage);
 
-  await octokitService.createPullRequest('hungng14', 'git-ai-commit', {
-    title: commitMessage,
-    body: `## ✨ Description
+  // await octokitService.createPullRequest('hungng14', 'git-ai-commit', {
+  //   title: commitMessage,
+  //   body: `## ✨ Summary by Git AI
 
-        This PR adds the feature to create Pull Requests using the CLI tool.
+  //       ### 🔥 Changes
 
-        ## 🔥 Changes
+  //       - Implemented \`createPullRequest\` function
+  //       - Added GitHub API integration via Axios
 
-        - Implemented \`createPullRequest\` function
-        - Added GitHub API integration via Axios
+  //       ## ✅ Checklist
 
-        ## ✅ Checklist
+  //       - [x] Code compiles correctly
+  //       - [x] Tests added and passing
+  //       - [x] Documentation updated
 
-        - [x] Code compiles correctly
-        - [x] Tests added and passing
-        - [x] Documentation updated
-
-        ## 📎 Related Issue`,
-    head: 'feat/add-create-pr',
-    base: 'main',
-  });
+  //       ## 📎 Related Issue`,
+  //   head: 'feat/add-create-pr',
+  //   base: 'main',
+  // });
 }
 
 // Export the functions
