@@ -89,22 +89,21 @@ export async function generateCommitMessage(
   // const branchPrompt: string = `Using branch "${currentBranch}" as context, generate a commit message following these types: ${followTypes}. Eg: [lower case type]: [Commit message].\n\n`;
 
   // const prompt: string = `${branchPrompt} Generate a concise and meaningful commit message no more 40 words for the following changes:\n\n${diffContents}`;
-  const prompt: string = `Here's git diff contents: [${diffContents}].
+  const prompt: string = `Here’s the git diff contents: [${diffContents}].
+    Convert the git diff into a structured JSON object following **EXACTLY** this format:
+    {
+      "title": "[Using branch \"${currentBranch}\" as context, generate a short title following ${followTypes} format: [type]: [message]. Summarize the overall change clearly.]",
+      "body": "[Generate a body in this format:
+        ## ✨ Summary by Git AI
 
-      Convert git diff contents into a structured JSON format following **EXACTLY** this schema:
-      {
-        "title": "[Using the branch name "${currentBranch}" as context, generate a concise and relevant commit title that follows one of the provided types: ${followTypes}. Format the title as: [lowercase type]: [commit message]. Ensure the title clearly summarizes the overall change based on the diff]",
-        "body": "[
-          Generate a body following this format:
-          ## ✨ Summary by Git AI
+        ### 🔥 Changes
+        - [List key points or main changes from the diff]
+      ]"
+    }
 
-          ### 🔥 Changes
-          - [List the key points or main changes found in the diff]
-        ]",
-      }
-
-      **DO NOT** wrap the JSON output in markdown (\`\`\`json ... \`\`\`).
-      **Return ONLY the raw JSON** without any extra text.
+    **Important rules:**
+    - **DO NOT** wrap the output in markdown (\`\`\`json ... \`\`\`).
+    - **Return ONLY the raw JSON**, with no extra text or explanation.
       `;
 
   try {
