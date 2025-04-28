@@ -89,21 +89,28 @@ export async function generateCommitMessage(
   const branchPrompt: string = `Using branch "${currentBranch}" as context, generate a commit message following these types: ${followTypes}. Eg: [lower case type]: [Commit message].\n\n`;
 
   // const prompt: string = `${branchPrompt} Generate a concise and meaningful commit message no more 40 words for the following changes:\n\n${diffContents}`;
-  const prompt: string = `${branchPrompt} Based on the following diff contents: ${diffContents}, 
-  create an object with the structure: { title: string, body: string }.
-  Generate a concise and relevant title summarizing the overall change. 
-  Generate a body following this format:
+  const prompt: string = `${branchPrompt}
+      Here's git diff contents: [${diffContents}].
 
-    ## ✨ Summary by Git AI
+      Convert git diff contents into a structured JSON format following **EXACTLY** this schema:
+      {
+        "title": "[Generate a concise and relevant title summarizing the overall change]",
+        "body": "[
+          Generate a body following this format:
+          ## ✨ Summary by Git AI
 
-    ### 🔥 Changes
-    - [List the key points or main changes found in the diff]
+          ### 🔥 Changes
+          - [List the key points or main changes found in the diff]
+        ]",
+      }
 
-  The output should strictly be a JSON object like: { "title": "", "body": "" }.`;
+      **DO NOT** wrap the JSON output in markdown (\`\`\`json ... \`\`\`).
+      **Return ONLY the raw JSON** without any extra text.
+      `;
 
   try {
     const result: GenerateContentResult = await model.generateContent(prompt);
-
+    console.log('result.response?.candidates?.[0]?.content?.parts', result.response?.candidates?.[0]?.content?.parts)
     const commitMessage: string | undefined =
       result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
 
