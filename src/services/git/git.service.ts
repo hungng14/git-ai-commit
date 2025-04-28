@@ -95,9 +95,6 @@ export async function generateCommitMessage(
     {
       "title": "[Using branch \"${currentBranch}\" as context, generate a short title following ${followTypes} format: [type]: [message]. Summarize the overall change clearly.]",
       "body": "[Generate a body in this format:
-        ## ✨ Summary by Git AI
-
-        ### 🔥 Changes
         - [List key points or main changes from the diff]
       ]"
     }

@@ -36,7 +36,11 @@ class OctokitService {
   ) {
     try {
       // Check if PR already exists with the same head branch
-      const existingPRs = await this.listPullRequests(owner, repo, `${owner}:${data.head}`);
+      const existingPRs = await this.listPullRequests(
+        owner,
+        repo,
+        `${owner}:${data.head}`
+      );
 
       if (existingPRs && existingPRs.length > 0) {
         // PR already exists, update it
@@ -45,13 +49,19 @@ class OctokitService {
         const prNumber = existingPR.number;
 
         // Append the new body content to the existing body
-        const updatedBody = existingPR.body ? `${existingPR.body}\n\n${data.body}` : data.body;
+        const updatedBody = existingPR.body
+          ? `${existingPR.body}\n${data.body}`
+          : ` ## ✨ Summary by Git AI
+
+                ### 🔥 Changes
+                ${data.body}
+            `;
 
         // Update the PR
         const updateResult = await octokitRequest
           .patch(`/repos/${owner}/${repo}/pulls/${prNumber}`, {
             title: data.title,
-            body: updatedBody
+            body: updatedBody,
           })
           .then((res) => res.data);
 
@@ -61,7 +71,15 @@ class OctokitService {
         // PR doesn't exist, create a new one
         console.log('Creating new PR...');
         const result = await octokitRequest
-          .post(`/repos/${owner}/${repo}/pulls`, data)
+          .post(`/repos/${owner}/${repo}/pulls`, {
+            ...data,
+            body: `
+                ## ✨ Summary by Git AI
+
+                ### 🔥 Changes
+                ${data.body}
+            `,
+          })
           .then((res) => res.data);
 
         console.log('New PR created successfully:', result);
@@ -75,4 +93,3 @@ class OctokitService {
 }
 
 export const octokitService = new OctokitService();
-
