@@ -60,7 +60,7 @@ class OctokitService {
         // Update the PR
         const updateResult = await octokitRequest
           .patch(`/repos/${owner}/${repo}/pulls/${prNumber}`, {
-            title: data.title,
+            // title: data.title,
             body: updatedBody,
           })
           .then((res) => res.data);
