@@ -2,11 +2,12 @@
 import 'dotenv/config';
 
 import axios from 'axios';
+import { GH_ACCESS_TOKEN } from '../../config';
 
 const octokitRequest = axios.create({
   baseURL: 'https://api.github.com',
   headers: {
-    Authorization: `Bearer ${process.env.GH_ACCESS_TOKEN}`,
+    Authorization: `Bearer ${GH_ACCESS_TOKEN}`,
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
   },
