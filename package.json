@@ -1,26 +1,35 @@
 {
   "name": "git-ai-commit",
   "version": "1.0.0",
-  "description": "",
-  "main": "app.js",
-  "type": "commonjs",
+  "description": "A TypeScript project from scratch",
+  "main": "dist/index.js",
   "scripts": {
-    "dev": "nodemon app.js",
-    "start": "node app.js",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "nodemon --exec ts-node src/index.ts",
+    "git-example": "ts-node src/git-example.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "bin": {
-    "git-ai": "./app.js"
-  },
+  "keywords": [
+    "typescript",
+    "node"
+  ],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "@google/generative-ai": "^0.22.0",
-    "commander": "^13.1.0",
-    "dotenv": "^16.4.7",
-    "simple-git": "^3.27.0"
-  },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "@types/commander": "^2.12.5",
+    "@types/node": "^22.15.3",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.0",
+    "@octokit/core": "^6.1.5",
+    "@octokit/types": "^14.0.0",
+    "axios": "^1.9.0",
+    "commander": "^13.1.0",
+    "dotenv": "^16.5.0",
+    "simple-git": "^3.27.0"
   }
 }
