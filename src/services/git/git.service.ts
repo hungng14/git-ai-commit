@@ -90,21 +90,22 @@ export async function generateCommitMessage(
   // const branchPrompt: string = `Using branch "${currentBranch}" as context, generate a commit message following these types: ${followTypes}. Eg: [lower case type]: [Commit message].\n\n`;
 
   // const prompt: string = `${branchPrompt} Generate a concise and meaningful commit message no more 40 words for the following changes:\n\n${diffContents}`;
-  const prompt: string = `Here’s the git diff contents: [${diffContents}].
-    Convert the git diff into a structured JSON object following **EXACTLY** this format:
-    {
-      "title": "[Using branch \"${currentBranch}\" as context, generate a short title following ${followTypes} format: [type]: [message]. Summarize the overall change clearly.]",
-      "body": "[Generate a body in this format:
-        - [List key points or main changes from the diff]
-      ]"
-    }
+  const prompt: string = `Here is the git diff contents: [${diffContents}].
 
-    **Important rules:**
-    - **DO NOT** wrap the output in markdown (\`\`\`json ... \`\`\`).
-    - **Return ONLY the raw JSON**, with no extra text or explanation.
+Convert the diff into a structured JSON object following **EXACTLY** this format:
+
+{
+  "title": "[Generate a short, clear title following this format: [type]: [commit message]. Types: feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert. Scopes (optional): auth|db|ui|api|deps|core|test]",
+  "body": ["List key points or main changes from the diff, each as a separate string"]
+}
+
+**Important rules:**
+- Return **ONLY** the raw JSON object.
+- **DO NOT** include any extra explanation, markdown formatting, or comments.
       `;
 
   try {
+    console.log('prompt', prompt)
     const result: GenerateContentResult = await model.generateContent(prompt);
     console.log(
       'result.response?.candidates?.[0]?.content?.parts',
