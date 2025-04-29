@@ -159,6 +159,7 @@ export async function commitChanges(createPR?: boolean): Promise<void> {
   const files: string[] = await getStagedFiles();
   const commitMessage: { title: string; body: string } | null =
     await generateContentGithubChange(files);
+
   if (!commitMessage) {
     return console.error('\x1b[31m%s\x1b[0m', 'Cannot generate commit message, please push the changed files to generate commit!');
   }

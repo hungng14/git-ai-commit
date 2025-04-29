@@ -13,11 +13,11 @@ const program = new Command();
 // Define the 'commit' command
 program
   .command('commit')
-  .option('--pr', 'Create a pull request after committing')
   .description('Generate an AI-powered commit message and commit changes')
   .action(async (options): Promise<void> => {
+    console.log('options', options)
     console.log('Committing changes...');
-    await commitChanges(options.pr);
+    await commitChanges();
   });
 
 // Define the 'commit pr' command as a shorthand for 'commit --pr'
