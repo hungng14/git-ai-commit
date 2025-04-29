@@ -42,6 +42,8 @@ class OctokitService {
         `${owner}:${data.head}`
       );
 
+      const body = Array.isArray(data.body) ? data.body.join('\n') : data.body;
+
       if (existingPRs && existingPRs.length > 0) {
         // PR already exists, update it
         console.log('PR already exists, updating it...');
@@ -50,11 +52,11 @@ class OctokitService {
 
         // Append the new body content to the existing body
         const updatedBody = existingPR.body
-          ? `${existingPR.body}\n${data.body}`
+          ? `${existingPR.body}\n${body}`
           : ` ## ✨ Summary by Git AI
 
                 ### 🔥 Changes
-                ${data.body}
+                ${body}
             `;
 
         // Update the PR
@@ -77,7 +79,7 @@ class OctokitService {
                 ## ✨ Summary by Git AI
 
                 ### 🔥 Changes
-                ${data.body}
+                ${body}
             `,
           })
           .then((res) => res.data);
