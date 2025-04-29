@@ -19,7 +19,6 @@ class OctokitService {
       .get(`/repos/${owner}/${repo}/pulls${params}`)
       .then((res) => res.data);
 
-    console.log('listPullRequests result:', result);
 
     return result;
   }
