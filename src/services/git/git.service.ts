@@ -90,23 +90,56 @@ export async function generateCommitMessage(
   // const branchPrompt: string = `Using branch "${currentBranch}" as context, generate a commit message following these types: ${followTypes}. Eg: [lower case type]: [Commit message].\n\n`;
 
   // const prompt: string = `${branchPrompt} Generate a concise and meaningful commit message no more 40 words for the following changes:\n\n${diffContents}`;
-  const prompt: string = `Here is the git diff contents: [${diffContents}].
+  const prompt: string = `Here is the Git diff content: [${diffContents}].
 
 Convert the diff into a structured JSON object following **EXACTLY** this format:
 
 {
   "title": "[Generate a short, clear title following this format: [type]: [commit message]. Types: feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert. Scopes (optional): auth|db|ui|api|deps|core|test]",
-  "body": ["List key points or main changes from the diff, each as a separate string"]
+  "body": ["• List key points or main changes from the diff, each as a separate string"]
 }
 
 **Important rules:**
+- Start every item in the body array with a dot (•) followed by a space.
 - Return **ONLY** the raw JSON object.
+- STRICTLY follow the { title, body } structure.
 - **DO NOT** include any extra explanation, markdown formatting, or comments.
       `;
 
   try {
-    console.log('prompt', prompt)
-    const result: GenerateContentResult = await model.generateContent(prompt);
+    console.log('prompt', prompt);
+    const result: GenerateContentResult = await model.generateContent({
+      systemInstruction: `You are a Git commit message generator.
+
+Your task is to analyze provided Git diffs, file modifications, or user descriptions, and generate a concise, clear Git commit message.
+
+**Rules you must follow:**
+- You must always return a **JSON object** with two fields:
+  - \`title\`: A short, clear commit title, following the format \`[type]: [message]\`.
+    - Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert.
+    - Optionally, you may use scopes like auth, db, ui, api, deps, core, test (example: \`feat(auth): add login validation\`).
+    - Keep the title under 72 characters if possible.
+  - \`body\`: An array of strings. Each string describes a key point or main change from the diff.
+    - Each body item must start with a dot (•) followed by a space.
+    - Focus on summarizing what changed and why, not how.
+    - Each entry should be a clear, standalone point.
+
+**Important:**
+- Return **only** the raw JSON object. No extra text, no explanations, no markdown, no comments.
+- **Strictly** follow the required \`{ title, body }\` structure.
+- If the diff is empty or minor, still generate a meaningful title and leave \`body\` empty if necessary.
+- Prioritize clarity, accuracy, and relevance.`,
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            {
+              text: prompt,
+            },
+          ],
+        },
+      ],
+    });
     console.log(
       'result.response?.candidates?.[0]?.content?.parts',
       result.response?.candidates?.[0]?.content?.parts
@@ -128,7 +161,7 @@ export async function commitChanges(): Promise<void> {
   const files: string[] = await getStagedFiles();
   const commitMessage: { title: string; body: string } | null =
     await generateContentGithubChange(files);
-  if(!commitMessage) {
+  if (!commitMessage) {
     throw new Error('Can not generate commit message');
   }
   console.log('commitMessage', commitMessage);
