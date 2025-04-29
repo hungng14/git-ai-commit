@@ -96,11 +96,11 @@ Convert the diff into a structured JSON object following **EXACTLY** this format
 
 {
   "title": "[Generate a short, clear title following this format: [type]: [commit message]. Types: feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert. Scopes (optional): auth|db|ui|api|deps|core|test]",
-  "body": ["• List key points or main changes from the diff, each as a separate string"]
+  "body": ["- List key points or main changes from the diff, each as a separate string"]
 }
 
 **Important rules:**
-- Start every item in the body array with a dot (•) followed by a space.
+- Start every item in the body array with a dash (-) followed by a space.
 - Return **ONLY** the raw JSON object.
 - STRICTLY follow the { title, body } structure.
 - **DO NOT** include any extra explanation, markdown formatting, or comments.
@@ -120,7 +120,7 @@ Your task is to analyze provided Git diffs, file modifications, or user descript
     - Optionally, you may use scopes like auth, db, ui, api, deps, core, test (example: \`feat(auth): add login validation\`).
     - Keep the title under 72 characters if possible.
   - \`body\`: An array of strings. Each string describes a key point or main change from the diff.
-    - Each body item must start with a dot (•) followed by a space.
+    - Each body item must start with a dash (-) followed by a space.
     - Focus on summarizing what changed and why, not how.
     - Each entry should be a clear, standalone point.
 
