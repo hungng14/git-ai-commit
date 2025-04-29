@@ -13,11 +13,20 @@ const program = new Command();
 // Define the 'commit' command
 program
   .command('commit')
-  // .option('-m, --message <message>', 'Commit message')
+  .option('--pr', 'Create a pull request after committing')
   .description('Generate an AI-powered commit message and commit changes')
-  .action(async (): Promise<void> => {
+  .action(async (options): Promise<void> => {
     console.log('Committing changes...');
-    await commitChanges();
+    await commitChanges(options.pr);
+  });
+
+// Define the 'commit pr' command as a shorthand for 'commit --pr'
+program
+  .command('commit-pr')
+  .description('Generate an AI-powered commit message, commit changes, and create a pull request')
+  .action(async (): Promise<void> => {
+    console.log('Committing changes and creating PR...');
+    await commitChanges(true);
   });
 
 // Parse command-line arguments

@@ -140,10 +140,7 @@ Your task is to analyze provided Git diffs, file modifications, or user descript
         },
       ],
     });
-    console.log(
-      'result.response?.candidates?.[0]?.content?.parts',
-      result.response?.candidates?.[0]?.content?.parts
-    );
+
     const commitMessage: string | undefined =
       result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
 
@@ -156,25 +153,45 @@ Your task is to analyze provided Git diffs, file modifications, or user descript
 
 /**
  * Commit changes with AI-generated message
+ * @param createPR Whether to create a pull request after committing
  */
-export async function commitChanges(): Promise<void> {
+export async function commitChanges(createPR?: boolean): Promise<void> {
   const files: string[] = await getStagedFiles();
   const commitMessage: { title: string; body: string } | null =
     await generateContentGithubChange(files);
   if (!commitMessage) {
-    throw new Error('Can not generate commit message');
+    return console.error('\x1b[31m%s\x1b[0m', 'Cannot generate commit message, please push the changed files to generate commit!');
   }
   console.log('commitMessage', commitMessage);
 
   await git.commit(commitMessage.title);
   await git.push();
 
-  await octokitService.createPullRequest('hungng14', 'git-ai-commit', {
-    title: commitMessage.title,
-    body: commitMessage.body,
-    head: await getCurrentBranch(),
-    base: 'main',
-  });
+  console.log('\x1b[32m%s\x1b[0m', `✅ Changes committed and pushed with message: ${commitMessage.title}`);
+
+  // Only create a PR if the createPR flag is true
+  if (createPR) {
+    console.log('\x1b[36m%s\x1b[0m', '🔄 Creating pull request...');
+    try {
+      const prResult = await octokitService.createPullRequest('hungng14', 'git-ai-commit', {
+        title: commitMessage.title,
+        body: commitMessage.body,
+        head: await getCurrentBranch(),
+        base: 'main',
+      });
+
+      if (prResult.message) {
+        // This is a custom message when no PR was created
+        console.log('\x1b[33m%s\x1b[0m', `ℹ️ ${prResult.message}`);
+        console.log('\x1b[33m%s\x1b[0m', `ℹ️ Branch URL: ${prResult.html_url}`);
+      } else {
+        // PR was created or updated successfully
+        console.log('\x1b[32m%s\x1b[0m', `✅ Pull request created/updated successfully: ${prResult.html_url}`);
+      }
+    } catch (error) {
+      console.error('\x1b[31m%s\x1b[0m', 'Failed to create pull request:', error);
+    }
+  }
 }
 
 const generateContentGithubChange = async (files: string[]) => {
@@ -191,8 +208,6 @@ const generateContentGithubChange = async (files: string[]) => {
     }
   }
 
-  console.log('Committed and pushed with AI-generated message:', commitMessage);
-
   let changes = parseCustomJSONString(commitMessage);
 
   // Retry once if changes is null
@@ -206,8 +221,6 @@ const generateContentGithubChange = async (files: string[]) => {
       );
       return;
     }
-
-    console.log('Retry commit message:', commitMessage);
 
     changes = parseCustomJSONString(commitMessage);
 

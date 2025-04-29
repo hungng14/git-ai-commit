@@ -67,25 +67,37 @@ class OctokitService {
           })
           .then((res) => res.data);
 
-        console.log('PR updated successfully:', updateResult);
+        console.log('PR updated successfully');
         return updateResult;
       } else {
         // PR doesn't exist, create a new one
         console.log('Creating new PR...');
-        const result = await octokitRequest
-          .post(`/repos/${owner}/${repo}/pulls`, {
-            ...data,
-            body: `
-                ## ✨ Summary by Git AI
+        try {
+          const result = await octokitRequest
+            .post(`/repos/${owner}/${repo}/pulls`, {
+              ...data,
+              body: `
+                  ## ✨ Summary by Git AI
 
-                ### 🔥 Changes
-                ${body}
-            `,
-          })
-          .then((res) => res.data);
+                  ### 🔥 Changes
+                  ${body}
+              `,
+            })
+            .then((res) => res.data);
 
-        console.log('New PR created successfully:', result);
-        return result;
+          console.log('New PR created successfully');
+          return result;
+        } catch (createError: any) {
+          // Check if the error is because the branch is already up-to-date with the base
+          if (createError?.response?.data?.errors?.[0]?.message?.includes('no commits between')) {
+            console.log('No new commits to create a PR. Branch is already up-to-date with the base.');
+            return {
+              html_url: `https://github.com/${owner}/${repo}/tree/${data.head}`,
+              message: 'No new commits to create a PR. Branch is already up-to-date with the base.'
+            };
+          }
+          throw createError;
+        }
       }
     } catch (error: any) {
       console.log('Error creating/updating PR:', error?.response?.data);
