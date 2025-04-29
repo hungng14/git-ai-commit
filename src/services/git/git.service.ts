@@ -37,6 +37,51 @@ export async function getCurrentBranch(): Promise<string> {
 }
 
 /**
+ * Extract owner and repo from git remote URL
+ * @returns Object containing owner and repo
+ */
+export async function getRepoInfo(): Promise<{ owner: string; repo: string }> {
+  try {
+    // Get the remote URL
+    const remoteUrl = await git.remote(['get-url', 'origin']);
+    console.log('remoteUrl', remoteUrl)
+
+    if (!remoteUrl) {
+      throw new Error('Could not get remote URL');
+    }
+
+    // Parse the URL to extract owner and repo
+    let owner = '';
+    let repo = '';
+
+    // Handle different URL formats
+    if (remoteUrl.includes('github.com')) {
+      // Format: https://github.com/owner/repo.git or git@github.com:owner/repo.git
+      const urlParts = remoteUrl
+        .replace('https://github.com/', '')
+        .replace('git@github.com:', '')
+        .replace('.git', '')
+        .trim()
+        .split('/');
+
+      if (urlParts.length >= 2) {
+        owner = urlParts[0];
+        repo = urlParts[1];
+      }
+    }
+
+    if (!owner || !repo) {
+      throw new Error(`Could not parse owner and repo from remote URL: ${remoteUrl}`);
+    }
+
+    return { owner, repo };
+  } catch (error) {
+    console.error('Error getting repo info:', error);
+    throw error;
+  }
+}
+
+/**
  * Read file content
  * @param file Path to the file
  * @returns File content as string
@@ -83,9 +128,10 @@ export async function generateCommitMessage(
   const diffContents: string = await getStagedDiff();
   console.log('---> diffContents', diffContents);
 
-  const followTypes: string = `
-          - types: feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert
-          - scopes: auth|db|ui|api|deps|core|test`;
+  // Define commit message types and scopes for reference
+  // const followTypes: string = `
+  //         - types: feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert
+  //         - scopes: auth|db|ui|api|deps|core|test`;
 
   // const branchPrompt: string = `Using branch "${currentBranch}" as context, generate a commit message following these types: ${followTypes}. Eg: [lower case type]: [Commit message].\n\n`;
 
@@ -161,25 +207,39 @@ export async function commitChanges(createPR?: boolean): Promise<void> {
     await generateContentGithubChange(files);
 
   if (!commitMessage) {
-    return console.error('\x1b[31m%s\x1b[0m', 'Cannot generate commit message, please push the changed files to generate commit!');
+    return console.error(
+      '\x1b[31m%s\x1b[0m',
+      'Cannot generate commit message, please push the changed files to generate commit!'
+    );
   }
   console.log('commitMessage', commitMessage);
 
   await git.commit(commitMessage.title);
   await git.push();
 
-  console.log('\x1b[32m%s\x1b[0m', `✅ Changes committed and pushed with message: ${commitMessage.title}`);
+  console.log(
+    '\x1b[32m%s\x1b[0m',
+    `✅ Changes committed and pushed with message: ${commitMessage.title}`
+  );
 
   // Only create a PR if the createPR flag is true
   if (createPR) {
     console.log('\x1b[36m%s\x1b[0m', '🔄 Creating pull request...');
     try {
-      const prResult = await octokitService.createPullRequest('hungng14', 'git-ai-commit', {
-        title: commitMessage.title,
-        body: commitMessage.body,
-        head: await getCurrentBranch(),
-        base: 'main',
-      });
+      // Get repository owner and name
+      const { owner, repo } = await getRepoInfo();
+      console.log(`Repository info - Owner: ${owner}, Repo: ${repo}`);
+
+      const prResult = await octokitService.createPullRequest(
+        owner,
+        repo,
+        {
+          title: commitMessage.title,
+          body: commitMessage.body,
+          head: await getCurrentBranch(),
+          base: 'main',
+        }
+      );
 
       if (prResult.message) {
         // This is a custom message when no PR was created
@@ -187,10 +247,17 @@ export async function commitChanges(createPR?: boolean): Promise<void> {
         console.log('\x1b[33m%s\x1b[0m', `ℹ️ Branch URL: ${prResult.html_url}`);
       } else {
         // PR was created or updated successfully
-        console.log('\x1b[32m%s\x1b[0m', `✅ Pull request created/updated successfully: ${prResult.html_url}`);
+        console.log(
+          '\x1b[32m%s\x1b[0m',
+          `✅ Pull request created/updated successfully: ${prResult.html_url}`
+        );
       }
     } catch (error) {
-      console.error('\x1b[31m%s\x1b[0m', 'Failed to create pull request:', error);
+      console.error(
+        '\x1b[31m%s\x1b[0m',
+        'Failed to create pull request:',
+        error
+      );
     }
   }
 }
@@ -237,6 +304,7 @@ const generateContentGithubChange = async (files: string[]) => {
 export default {
   getModifiedFiles,
   getCurrentBranch,
+  getRepoInfo,
   getFileContent,
   getStagedDiff,
   getStagedFiles,

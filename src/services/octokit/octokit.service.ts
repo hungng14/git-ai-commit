@@ -35,10 +35,13 @@ class OctokitService {
   ) {
     try {
       // Check if PR already exists with the same head branch
+      // If the head already contains the owner (e.g., "owner:branch"), use it as is
+      // Otherwise, prepend the owner (e.g., "owner:branch")
+      const headWithOwner = data.head.includes(':') ? data.head : `${owner}:${data.head}`;
       const existingPRs = await this.listPullRequests(
         owner,
         repo,
-        `${owner}:${data.head}`
+        headWithOwner
       );
 
       const body = Array.isArray(data.body) ? data.body.join('\n') : data.body;
