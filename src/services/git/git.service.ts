@@ -229,8 +229,6 @@ const generateContentGithubChange = async (files: string[]) => {
       return;
     }
   }
-  console.log('changes', changes);
-
   return changes;
 };
 
