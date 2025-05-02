@@ -44,7 +44,7 @@ export async function getRepoInfo(): Promise<{ owner: string; repo: string }> {
   try {
     // Get the remote URL
     const remoteUrl = await git.remote(['get-url', 'origin']);
-    console.log('remoteUrl', remoteUrl)
+    console.log('---> remote Url', remoteUrl)
 
     if (!remoteUrl) {
       throw new Error('Could not get remote URL');
