@@ -56,10 +56,7 @@ class OctokitService {
         // Append the new body content to the existing body
         const updatedBody = existingPR.body
           ? `${existingPR.body}\n${body}`
-          : ` ## ✨ Summary by Git AI
-
-                ### 🔥 Changes
-                ${body}
+          : `## ✨ Summary by Git AI\n\n### 🔥 Changes\n${body}
             `;
 
         // Update the PR
@@ -79,11 +76,7 @@ class OctokitService {
           const result = await octokitRequest
             .post(`/repos/${owner}/${repo}/pulls`, {
               ...data,
-              body: `
-                  ## ✨ Summary by Git AI
-
-                  ### 🔥 Changes
-                  ${body}
+              body: `## ✨ Summary by Git AI\n\n### 🔥 Changes\n${body}
               `,
             })
             .then((res) => res.data);
